@@ -9,22 +9,26 @@
 
 frappe.ui.form.on("AFIP Setting", {
     refresh(frm) {
-        frappe.model.with_doctype("Sales Invoice", function() {
-            const si_meta = frappe.get_meta("Sales Invoice");
-            const si_series_field = si_meta.fields.find(f => f.fieldname === "naming_series");
+        if (frm.fields_dict.sales_invoice_naming_series) {
+            frappe.model.with_doctype("Sales Invoice", function() {
+                const si_meta = frappe.get_meta("Sales Invoice");
+                const si_series_field = si_meta.fields.find(f => f.fieldname === "naming_series");
 
-            if (si_series_field && si_series_field.options) {
-                const series_list = si_series_field.options.split("\n");
+                if (si_series_field && si_series_field.options) {
+                    const series_list = si_series_field.options.split("\n");
 
-                // Set options in child table field 'naming_series'
-                frm.fields_dict.sales_invoice_naming_series.grid.update_docfield_property(
-                    "naming_series",
-                    "options",
-                    series_list
-                );
-            }
-        });
-       frm.doc.credentials.forEach(row => {
+                    // Set options in child table field 'naming_series'
+                    frm.fields_dict.sales_invoice_naming_series.grid.update_docfield_property(
+                        "naming_series",
+                        "options",
+                        series_list
+                    );
+                }
+            });
+        }
+
+        if (frm.fields_dict.credentials && Array.isArray(frm.doc.credentials)) {
+            frm.doc.credentials.forEach(row => {
 
     // 1) Current bench time in UTC
             let now_utc = new Date(frappe.datetime.now_datetime(true) + "Z");
@@ -60,9 +64,10 @@ frappe.ui.form.on("AFIP Setting", {
             // 4) Compare in UTC
             row.status = now_utc > exp_utc ? "Invalid" : "Valid";
 
-});
+            });
 
-        frm.refresh_field("credentials");
+            frm.refresh_field("credentials");
+        }
 
     }
 });

@@ -318,3 +318,13 @@ def get_afip_token(force_new=0):
             title="AFIP Token Generation Error"
         )
         frappe.throw(user_message)
+
+
+def renew_all_afip_tokens():
+    """Scheduler entrypoint for periodic AFIP token refresh."""
+    try:
+        return get_afip_token(force_new=1)
+    except Exception:
+        # Avoid crashing the scheduler heartbeat; keep details in error log.
+        frappe.log_error(frappe.get_traceback(), "AFIP Scheduled Token Renewal Failed")
+        return {"success": False}
